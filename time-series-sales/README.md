@@ -61,13 +61,15 @@ Both models were tuned using **Optuna** with **TimeSeriesSplit (5 folds)** cross
 
 The chart below shows both models' predictions against real sales values on the test set:
 
-![Predictions vs Actual](predictions.png)
+<img width="1389" height="490" alt="output" src="https://github.com/user-attachments/assets/422e3357-becc-4760-9bf2-87bfa17e4dd4" />
+
 
 ### 12-Month Forecast
 
 Using recursive forecasting (each prediction becomes input for the next), both models projected sales 12 months into the future:
 
-![Forecast](forecast.png)
+<img width="1389" height="490" alt="output2" src="https://github.com/user-attachments/assets/6fac7289-6eb3-433d-97c5-bcdd64767a4f" />
+
 
 ---
 
