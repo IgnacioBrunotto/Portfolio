@@ -32,6 +32,7 @@ All three models pass the Ljung-Box test → residuals are **white noise** (no e
 - [Methodology](#methodology)
 - [Model results](#model-results)
 - [Residual analysis](#residual-analysis)
+- [Conclusions](#conclusions)
 - [How to reproduce](#how-to-reproduce)
 
 ---
@@ -187,6 +188,40 @@ All models pass at α = 0.05 — no significant autocorrelation remains in the r
 | XGBoost | −20.5 | 290.0 | +0.94 | 0.00 | ❌ Non-normal |
 
 LightGBM shows the best combination: lowest bias (mean ≈ −28), symmetric distribution, and confirmed normality.
+
+---
+
+## Conclusions
+
+### Business insights
+
+**Promotions are the most powerful and actionable lever.** A consistent +30% average demand uplift across all categories confirms that the business has direct control over the most impactful demand driver. The `promotion × epidemic` interaction shows that promotions remain effective even in adverse scenarios (+18 units), although they do not fully offset the epidemic shock.
+
+**Epidemic events are the most severe negative shock (−38%)** and affect all regions uniformly. The model treats them as an external input with a 7-day lag, which means that in production a real-time early warning system would be needed to feed that feature reliably.
+
+**Category is the strongest segmentation dimension.** Groceries (mean 121) nearly doubles Furniture (74). Pricing, stocking and promotion decisions should be made at category level rather than globally.
+
+### Modeling insights
+
+**LightGBM is the winning model** across all relevant metrics: lowest MAE (193.6), lowest MAPE (1.99%) and residuals closest to pure white noise (Ljung-Box p = 0.94). It would be the primary candidate for a production deployment.
+
+**Lag and rolling features are the most important predictors**, confirming that demand has strong autocorrelation — the best predictor of tomorrow's demand is the demand of the last 7–14 days. This validates temporal feature engineering as the highest-value step in the pipeline.
+
+**Prophet is useful despite being less precise.** Its real advantage lies in interpretability: trend + seasonality decomposition with confidence intervals. For stakeholder presentations or explaining *why* demand is rising or falling, Prophet is the stronger choice.
+
+**XGBoost produces non-normal residuals** (Shapiro-Wilk p ≈ 0), suggesting asymmetric behavior around demand spikes — it tends to underestimate high-demand peaks. In a business where stockouts are costlier than overstock, this is an operational risk worth monitoring.
+
+### Process insights
+
+**Data leakage was the most critical risk.** `Units Sold` has a 0.83 correlation with `Demand` — if not detected and excluded, the model produces artificially perfect validation metrics and fails entirely in production. Catching it during EDA, before any model training, was the most important decision of the project.
+
+**The multicollinearity between `Discount` and `Promotion` was non-obvious.** The cross-analysis revealed near-perfect dependence — including both features adds noise, not information.
+
+**MAPE ~2% on aggregated daily demand is a solid result**, but context matters: this is the sum across ~100 store×product combinations per day, which smooths individual errors. At the single store or SKU level, error would be considerably higher.
+
+### Key takeaway
+
+The gap between a model that "works in a notebook" and one ready for production lies in the details: correct lag construction, strict temporal splits, leakage detection in EDA, and residual analysis to confirm the model learned the signal — not the noise.
 
 ---
 

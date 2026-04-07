@@ -32,6 +32,7 @@ Los tres modelos superan el test de Ljung-Box → los residuos son **ruido blanc
 - [Metodología](#metodología)
 - [Resultados de los modelos](#resultados-de-los-modelos)
 - [Análisis de residuos](#análisis-de-residuos)
+- [Conclusiones](#conclusiones)
 - [Cómo reproducir](#cómo-reproducir)
 
 ---
@@ -187,6 +188,40 @@ Todos los modelos superan el test con α = 0.05 — no queda autocorrelación si
 | XGBoost | −20.5 | 290.0 | +0.94 | 0.00 | ❌ No normal |
 
 LightGBM presenta la mejor combinación: menor sesgo (media ≈ −28), distribución simétrica y normalidad confirmada.
+
+---
+
+## Conclusiones
+
+### Sobre el negocio
+
+**Las promociones son el lever más poderoso y accionable.** Un incremento promedio del +30% en demanda es consistente en todas las categorías — la empresa tiene control directo sobre el driver de mayor impacto. La interacción `promoción × epidemia` muestra que las promociones siguen siendo efectivas en escenarios adversos (+18 unidades), aunque no compensan la caída total.
+
+**Las epidemias son el shock negativo más severo (−38%)** y afectan uniformemente todas las regiones. El modelo las trata como input externo con lag de 7 días, lo que implica que en producción se necesitaría un sistema de alerta temprana para alimentar ese feature de forma confiable.
+
+**La categoría es la dimensión de segmentación más diferenciadora.** Groceries (media 121) casi duplica a Furniture (74). Las decisiones de pricing, stock y promociones deberían tomarse a nivel de categoría, no globalmente.
+
+### Sobre el modelado
+
+**LightGBM es el modelo ganador** en todas las métricas relevantes: menor MAE (193.6), menor MAPE (1.99%) y los residuos más cercanos a ruido blanco puro (Ljung-Box p = 0.94). Sería el candidato principal para un despliegue en producción.
+
+**Los lags y medias móviles son los features más importantes**, lo que confirma que la demanda tiene fuerte autocorrelación — el mejor predictor de la demanda de mañana es la demanda de los últimos 7–14 días. Esto valida el feature engineering temporal como el paso de mayor valor en el pipeline.
+
+**Prophet es útil aunque menos preciso.** Su ventaja real está en la interpretabilidad: descomposición de tendencia + estacionalidad con intervalos de confianza. Para presentaciones a stakeholders o para explicar *por qué* sube o baja la demanda, Prophet es la opción más sólida.
+
+**XGBoost produce residuos no normales** (Shapiro-Wilk p ≈ 0), lo que sugiere un comportamiento asimétrico ante picos de demanda — tiende a subestimar la demanda alta. En un negocio donde el quiebre de stock es más costoso que el sobreinventario, esto es un riesgo operativo a monitorear.
+
+### Sobre el proceso
+
+**El data leakage fue el riesgo más crítico.** `Units Sold` tiene correlación 0.83 con `Demand` — si no se detecta y excluye, el modelo genera métricas de validación artificialmente perfectas y falla completamente en producción. Identificarlo durante el EDA, antes de cualquier entrenamiento, fue la decisión más importante del proyecto.
+
+**La multicolinealidad entre `Discount` y `Promotion` no era evidente a simple vista.** El análisis cruzado reveló dependencia casi perfecta — incluir ambas variables no agrega información sino ruido.
+
+**MAPE ~2% sobre demanda diaria agregada es un resultado sólido**, pero requiere contexto: se está prediciendo la suma de ~100 combinaciones tienda×producto por día, lo que suaviza los errores individuales. A nivel de tienda individual o SKU, el error sería considerablemente mayor.
+
+### Conclusión general
+
+La diferencia entre un modelo que "funciona en el notebook" y uno listo para producción está en los detalles: construcción correcta de lags, splits temporales estrictos, detección de leakage en el EDA y análisis de residuos para confirmar que el modelo aprendió la señal — no el ruido.
 
 ---
 
