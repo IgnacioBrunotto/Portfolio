@@ -163,17 +163,20 @@ Test   ░░░░░░░░░░░░░░░░░░░░░░░░ 
 
 ## Model results
 
-![Metrics Comparison](images/metrics_comparison.png)
+<img width="2076" height="768" alt="metrics_comparison" src="https://github.com/user-attachments/assets/3589c6c5-c703-4ee5-8023-f12c0bc71a05" />
+
 
 ### Prophet — with confidence intervals
 
-![Prophet Forecast](images/prophet_forecast.png)
+<img width="1917" height="722" alt="prophet_forecast" src="https://github.com/user-attachments/assets/c395eefa-933d-4224-9ee6-7f9f4d3952d4" />
+
 
 Prophet receives external regressors (`Promotion_Ratio`, `epidemic_lag_7`, `Avg_Discount`, `Avg_Price`, `promo_x_epidemic`) and applies automatic weekly + yearly seasonality decomposition. The 80% confidence intervals provide interpretable uncertainty bounds — useful for stakeholder presentations.
 
 ### LightGBM — feature importance
 
-![LightGBM Feature Importance](images/feature_importance_lgb.png)
+<img width="1324" height="872" alt="feature_importance_lgb" src="https://github.com/user-attachments/assets/0753554e-9d25-4539-9188-2856dbe42fa7" />
+
 
 LightGBM achieves the lowest MAE and MAPE. Lag features and rolling means dominate — consistent with demand autocorrelation structure. Epidemic and promotion features rank among the top business drivers.
 
@@ -191,13 +194,15 @@ A rigorous residual analysis was performed to validate forecast quality beyond p
 
 ### Residuals over time
 
-![Residuals Over Time](images/residuals_over_time.png)
+<img width="1920" height="1474" alt="residuals_over_time" src="https://github.com/user-attachments/assets/f62a4e61-f00b-4eaf-ad79-d83869e7f547" />
+
 
 All three models produce residuals centered around zero with no visible trend or cyclic structure — indicating the models captured the underlying demand dynamics.
 
 ### ACF of residuals + Ljung-Box test
 
-![Residuals ACF](images/residuals_acf.png)
+<img width="2226" height="574" alt="residuals_acf" src="https://github.com/user-attachments/assets/03d8a1aa-b966-4fae-a803-56cd579211c8" />
+
 
 | Model | Ljung-Box statistic (lag=10) | p-value | Verdict |
 |:---:|:---:|:---:|:---:|
@@ -209,7 +214,8 @@ All models pass at α=0.05 — no significant autocorrelation remains in the res
 
 ### Residuals distribution
 
-![Residuals Distribution](images/residuals_distribution.png)
+<img width="2215" height="721" alt="residuals_distribution" src="https://github.com/user-attachments/assets/7c529bea-4ec4-4db6-8f39-7981b536da63" />
+
 
 | Model | Mean | Std | Skew | Shapiro-Wilk p | Normality |
 |:---:|:---:|:---:|:---:|:---:|:---:|
@@ -221,39 +227,6 @@ LightGBM shows the best combination: lowest bias (mean ≈ −28), symmetric dis
 
 ---
 
-## How to reproduce
-
-### 1. Clone the repository
-
-```bash
-git clone https://github.com/<your-username>/demand-forecasting.git
-cd demand-forecasting
-```
-
-### 2. Set up the environment
-
-```bash
-python -m venv venv
-source venv/bin/activate       # Windows: venv\Scripts\activate
-
-pip install pandas numpy matplotlib seaborn scikit-learn \
-            lightgbm xgboost prophet statsmodels scipy jupyter
-```
-
-### 3. Run notebooks in order
-
-```bash
-jupyter notebook
-```
-
-| # | Notebook | Purpose |
-|---|---|---|
-| 1 | `Demand_Forecasting.ipynb` | Full EDA |
-| 2 | `Modelado.ipynb` | Feature engineering, training, evaluation |
-
-> **Note:** Prophet grid search runs 18 configurations × temporal CV — expect 5–10 minutes depending on hardware.
-
----
 
 ## Tech stack
 
