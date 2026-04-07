@@ -1,4 +1,4 @@
-# 📦 Demand Forecasting — Retail Sales Prediction
+# Demand Forecasting — Retail Sales Prediction
 
 > End-to-end forecasting pipeline comparing **Prophet**, **LightGBM** and **XGBoost** on 76,000 retail transactions across 5 stores and 20 SKUs.
 
@@ -8,17 +8,17 @@
 ![XGBoost](https://img.shields.io/badge/XGBoost-2.x-ec6c12)
 ![scikit-learn](https://img.shields.io/badge/scikit--learn-1.x-f7931e?logo=scikit-learn&logoColor=white)
 
+🇪🇸 [Versión en español](README_ES.md)
+
 ---
 
 ## Results at a glance
 
-![Forecast Comparison](images/forecast_comparison.png)
-
 | Model | MAE | RMSE | MAPE | Ljung-Box |
 |:---:|:---:|:---:|:---:|:---:|
-| **LightGBM** | **193.6** | **243.1** | **1.99%** ✅ | p = 0.94 — white noise |
-| XGBoost | 200.3 | 253.4 | 2.03% | p = 0.35 — white noise |
-| Prophet | 255.5 | 322.4 | 2.49% | p = 0.33 — white noise |
+| **LightGBM** | **193.6** | **243.1** | **1.99%** | p = 0.94 — white noise ✅ |
+| XGBoost | 200.3 | 253.4 | 2.03% | p = 0.35 — white noise ✅ |
+| Prophet | 255.5 | 322.4 | 2.49% | p = 0.33 — white noise ✅ |
 
 All three models pass the Ljung-Box test → residuals are **white noise** (no exploitable temporal structure left behind).
 
@@ -85,27 +85,14 @@ Forecasting demand accurately is critical for inventory optimization, promotion 
 ## Repository structure
 
 ```
-demand-forecasting/
+demand_forecasting/
 │
 ├── demand_forecasting.csv       # Raw dataset
-│
 ├── Demand_Forecasting.ipynb     # EDA notebook
-│   ├── Descriptive statistics
-│   ├── Data leakage detection
-│   ├── Promotion & epidemic impact analysis
-│   ├── Category / region / weather segmentation
-│   └── Time series visualizations
-│
 ├── Modelado.ipynb               # Modeling pipeline
-│   ├── Preprocessing & feature engineering
-│   ├── Temporal train/test split
-│   ├── Prophet (grid search + temporal CV)
-│   ├── LightGBM (RandomizedSearchCV + TimeSeriesSplit)
-│   ├── XGBoost  (RandomizedSearchCV + TimeSeriesSplit)
-│   ├── Metric comparison (MAE · RMSE · MAPE)
-│   └── Residual analysis (ACF · Ljung-Box · distribution)
-│
-└── images/                      # Plots used in this README
+├── EDA_Informe.md               # Detailed EDA findings report
+├── README.md                    # This file (English)
+└── README_ES.md                 # Spanish version
 ```
 
 ---
@@ -118,7 +105,7 @@ demand-forecasting/
 |---|---|
 | Excluded `Units Sold` | Correlation 0.83 with `Demand` → data leakage |
 | Excluded `Units Ordered` | Potential look-ahead bias |
-| Merged `Discount` + `Promotion` → `Promotion_Ratio` | Multicollinearity; ratio captures intensity |
+| Merged `Discount` + `Promotion` → `Promotion_Ratio` | Multicollinearity; ratio captures promotion intensity |
 | Created `price_vs_category_mean` | Raw price loses signal without segment context |
 | `epidemic_lag_7` instead of raw `Epidemic` | Eliminates look-ahead bias in epidemic signal |
 
@@ -163,28 +150,17 @@ Test   ░░░░░░░░░░░░░░░░░░░░░░░░ 
 
 ## Model results
 
-<img width="2076" height="768" alt="metrics_comparison" src="https://github.com/user-attachments/assets/3589c6c5-c703-4ee5-8023-f12c0bc71a05" />
+### Prophet
 
+Receives external regressors (`Promotion_Ratio`, `epidemic_lag_7`, `Avg_Discount`, `Avg_Price`, `promo_x_epidemic`) and applies automatic weekly + yearly seasonality decomposition. The 80% confidence intervals provide interpretable uncertainty bounds — useful for stakeholder presentations.
 
-### Prophet — with confidence intervals
+### LightGBM
 
-<img width="1917" height="722" alt="prophet_forecast" src="https://github.com/user-attachments/assets/c395eefa-933d-4224-9ee6-7f9f4d3952d4" />
+Achieves the lowest MAE and MAPE. Lag features and rolling means dominate — consistent with demand autocorrelation structure. Epidemic and promotion features rank among the top business drivers.
 
+### XGBoost
 
-Prophet receives external regressors (`Promotion_Ratio`, `epidemic_lag_7`, `Avg_Discount`, `Avg_Price`, `promo_x_epidemic`) and applies automatic weekly + yearly seasonality decomposition. The 80% confidence intervals provide interpretable uncertainty bounds — useful for stakeholder presentations.
-
-### LightGBM — feature importance
-
-<img width="1324" height="872" alt="feature_importance_lgb" src="https://github.com/user-attachments/assets/0753554e-9d25-4539-9188-2856dbe42fa7" />
-
-
-LightGBM achieves the lowest MAE and MAPE. Lag features and rolling means dominate — consistent with demand autocorrelation structure. Epidemic and promotion features rank among the top business drivers.
-
-### XGBoost — feature importance
-
-![XGBoost Feature Importance](images/feature_importance_xgb.png)
-
-XGBoost delivers comparable performance to LightGBM with slightly higher RMSE, showing stronger resistance to individual outlier spikes. Feature importance patterns are similar across both gradient boosting models.
+Delivers comparable performance to LightGBM with slightly higher RMSE, showing stronger resistance to individual outlier spikes. Feature importance patterns are similar across both gradient boosting models.
 
 ---
 
@@ -192,30 +168,17 @@ XGBoost delivers comparable performance to LightGBM with slightly higher RMSE, s
 
 A rigorous residual analysis was performed to validate forecast quality beyond point metrics.
 
-### Residuals over time
+**Ljung-Box test (lag = 10):**
 
-<img width="1920" height="1474" alt="residuals_over_time" src="https://github.com/user-attachments/assets/f62a4e61-f00b-4eaf-ad79-d83869e7f547" />
-
-
-All three models produce residuals centered around zero with no visible trend or cyclic structure — indicating the models captured the underlying demand dynamics.
-
-### ACF of residuals + Ljung-Box test
-
-<img width="2226" height="574" alt="residuals_acf" src="https://github.com/user-attachments/assets/03d8a1aa-b966-4fae-a803-56cd579211c8" />
-
-
-| Model | Ljung-Box statistic (lag=10) | p-value | Verdict |
+| Model | Statistic | p-value | Verdict |
 |:---:|:---:|:---:|:---:|
 | Prophet | 11.34 | 0.33 | ✅ White noise |
 | LightGBM | 4.21 | 0.94 | ✅ White noise |
 | XGBoost | 11.07 | 0.35 | ✅ White noise |
 
-All models pass at α=0.05 — no significant autocorrelation remains in the residuals.
+All models pass at α = 0.05 — no significant autocorrelation remains in the residuals.
 
-### Residuals distribution
-
-<img width="2215" height="721" alt="residuals_distribution" src="https://github.com/user-attachments/assets/7c529bea-4ec4-4db6-8f39-7981b536da63" />
-
+**Residuals distribution:**
 
 | Model | Mean | Std | Skew | Shapiro-Wilk p | Normality |
 |:---:|:---:|:---:|:---:|:---:|:---:|
@@ -227,6 +190,35 @@ LightGBM shows the best combination: lowest bias (mean ≈ −28), symmetric dis
 
 ---
 
+## How to reproduce
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/IgnacioBrunotto/Portfolio.git
+cd Portfolio/demand_forecasting
+```
+
+### 2. Set up the environment
+
+```bash
+python -m venv venv
+source venv/bin/activate       # Windows: venv\Scripts\activate
+
+pip install pandas numpy matplotlib seaborn scikit-learn \
+            lightgbm xgboost prophet statsmodels scipy jupyter
+```
+
+### 3. Run notebooks in order
+
+| # | Notebook | Purpose |
+|---|---|---|
+| 1 | `Demand_Forecasting.ipynb` | Full EDA |
+| 2 | `Modelado.ipynb` | Feature engineering, training & evaluation |
+
+> **Note:** Prophet grid search runs 18 configurations × temporal CV — expect 5–10 minutes depending on hardware.
+
+---
 
 ## Tech stack
 
